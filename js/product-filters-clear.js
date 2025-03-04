@@ -16,13 +16,16 @@
 			term_name  = $( this ).find( '.term-name' ).prop( 'innerHTML' );
 
 		// Create buttons
-		// @todo if clear is clicked remove those containers too
-		// @todo remove logs
 		if ( document.getElementById( 'wps-dynamic-clear-filters' ) !== null ) {
 			if ( !!term ) { 
 				if ( document.getElementById( 'clear-filter-' + taxonomy + '-' + term ) === null ) {
 					$( '#wps-dynamic-clear-filters' ).append( '<a class="clear-filter-term" id="clear-filter-' + taxonomy + '-' + term + '">' + term_name + '</a>' );
-					$( document ).on( 'click', '#clear-filter-' + taxonomy + '-' + term, { container: '#' + origin_id, taxonomy: taxonomy, term: term }, termClearOnClick );
+					$( document ).on(
+						'click',
+						'#clear-filter-' + taxonomy + '-' + term,
+						{ container: '#' + origin_id, taxonomy: taxonomy, term: term },
+						termClearOnClick
+					);
 				} else {
 					$( '#clear-filter-' + taxonomy + '-' + term ).remove();
 				}
