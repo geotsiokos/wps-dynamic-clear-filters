@@ -4,7 +4,29 @@
 		$( document ).on( 'click', '.product-search-filter-terms:not(.filter-dead) .product-search-product_brand-filter-item:not(.product-search-attribute-filter-item) a', filterItemOnClick );
 		$( document ).on( 'click', '.product-search-filter-terms:not(.filter-dead) .product-search-product_tag-filter-item', filterItemOnClick );
 		$( document ).on( 'click', '.product-search-filter-terms:not(.filter-dead) .product-search-attribute-filter-item:not(.product-search-product_cat-filter-item) a', filterItemOnClick );
+		$( document ).on( 'click', '.product-search-filter-reset .product-search-filter-reset-clear', resetAllFiltersOnClick );
+		$( document ).on( 'ixProductFilterRequestProcessed', toggleActiveFilters );
 	});
+
+	let activeFilters = [];
+
+	toggleActiveFilters = function( e ) {
+		activeFilters.forEach( (element) => {
+			if ( $(document).find('.current-' + element.taxonomy + '[data-term="'+ element.term +'"]').length > 0 ) {
+				$( '#clear-filter-' + element.taxonomy + '-' + element.term ).show();
+			} else {
+				$( '#clear-filter-' + element.taxonomy + '-' + element.term ).hide();
+			}
+		});
+	}
+
+	resetAllFiltersOnClick = function ( e ) {
+		if ( document.getElementById( 'wps-dynamic-clear-filters' ) !== null ) {
+			$('[id^="clear-filter-"]').remove();
+		}
+
+		return false;
+	}
 
 	filterItemOnClick = function( e ) {
 		var container  = $( this ).closest( '.product-search-filter-terms' ),
@@ -17,17 +39,22 @@
 
 		// Create buttons
 		if ( document.getElementById( 'wps-dynamic-clear-filters' ) !== null ) {
-			if ( !!term ) { 
+			if ( !!term ) {
+				let active_taxonomy = taxonomy === 'product_tag' ? 'tag' : taxonomy;
 				if ( document.getElementById( 'clear-filter-' + taxonomy + '-' + term ) === null ) {
-					$( '#wps-dynamic-clear-filters' ).append( '<a class="clear-filter-term" id="clear-filter-' + taxonomy + '-' + term + '">' + term_name + '</a>' );
-					$( document ).on(
-						'click',
-						'#clear-filter-' + taxonomy + '-' + term,
-						{ container: '#' + origin_id, taxonomy: taxonomy, term: term },
-						termClearOnClick
-					);
+					// @todo we also need a ?sessionstorage?
+
+					activeFilters.push( { taxonomy: active_taxonomy, term: term } );
+					//$( '#wps-dynamic-clear-filters' ).append( '<a class="clear-filter-term" id="clear-filter-' + taxonomy + '-' + term + '">' + term_name + '</a>' );
+					//$( document ).on(
+					//	'click',
+					//	'#clear-filter-' + taxonomy + '-' + term,
+					//	{ container: '#' + origin_id, taxonomy: taxonomy, term: term },
+					//	termClearOnClick
+					//);
 				} else {
-					$( '#clear-filter-' + taxonomy + '-' + term ).remove();
+					activeFilters.pop( { taxonomy: active_taxonomy, term: term } );
+					//$( '#clear-filter-' + taxonomy + '-' + term ).remove();
 				}
 			} else if ( clear ) {
 				var clear_option = $( this ).closest( '.nav-back' );
@@ -52,15 +79,28 @@
 				}
 				if ( cleared_taxonomy ) {
 					var clear_taxonomy_filters = 'clear-filter-' + cleared_taxonomy;
-					$('[id^="'+ clear_taxonomy_filters +'"]').remove();
+					//$('[id^="'+ clear_taxonomy_filters +'"]').remove();
+					activeFilters = activeFilters.filter( function( obj ) {
+						return obj.taxonomy !== cleared_taxonomy;
+					});
 				}
 			} else if ( clear_tags ) {
 				// Clear for tag
 				var cleared_taxonomy = 'product_tag';
 				var clear_taxonomy_filters = 'clear-filter-' + cleared_taxonomy;
-				$('[id^="'+ clear_taxonomy_filters +'"]').remove();
+				//$('[id^="'+ clear_taxonomy_filters +'"]').remove();
+				activeFilters = activeFilters.filter( function( obj ) {
+					return obj.taxonomy !== cleared_taxonomy;
+				});
 			}
-		}
+			$( '#wps-dynamic-clear-filters' ).append( '<a class="clear-filter-term" id="clear-filter-' + taxonomy + '-' + term + '">' + term_name + '</a>' );
+			$( document ).on(
+				'click',
+				'#clear-filter-' + taxonomy + '-' + term,
+				{ container: '#' + origin_id, taxonomy: taxonomy, term: term },
+				termClearOnClick
+			);
+		} //wps-dynamic-clear-filters container exists
 
 		return false;
 	}
